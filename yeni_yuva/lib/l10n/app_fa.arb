@@ -1,0 +1,23 @@
+{
+  "@@locale": "fa",
+  "appTitle": "یِنی یوْوا",
+  "welcome": "!خوش آمدید",
+  "welcomeSubtitle": "یِنی یوْوا راهنمای دیجیتالی شما برای دسترسی به خدمات مهاجران در ترکیه است.",
+  "quickAccess": "دسترسی سریع",
+  "emergency": "اورژانس",
+  "emergencyNumber": "112 - خط کمک اورژانسی",
+  "home": "صفحه اصلی",
+  "map": "نقشه",
+  "guide": "راهنما",
+  "profile": "پروفایل",
+  "login": "ورود",
+  "register": "ثبت نام",
+  "categoryHealth": "بهداشت",
+  "categoryEducation": "آموزش",
+  "categoryLegal": "حمایت حقوقی",
+  "categoryHousing": "مسکن",
+  "categorySocialAid": "کمک اجتماعی",
+  "categoryEmployment": "اشتغال",
+  "categoryCommunity": "جامعه",
+  "search": "جستجو"
+}

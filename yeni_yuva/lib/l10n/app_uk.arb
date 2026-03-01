@@ -1,0 +1,23 @@
+{
+  "@@locale": "uk",
+  "appTitle": "YeniYuva",
+  "welcome": "Ласкаво просимо!",
+  "welcomeSubtitle": "YeniYuva — ваш цифровий путівник для доступу до послуг для мігрантів у Туреччині.",
+  "quickAccess": "Швидкий доступ",
+  "emergency": "Екстрена допомога",
+  "emergencyNumber": "112 - Лінія екстреної допомоги",
+  "home": "Головна",
+  "map": "Карта",
+  "guide": "Довідник",
+  "profile": "Профіль",
+  "login": "Увійти",
+  "register": "Зареєструватися",
+  "categoryHealth": "Здоров'я",
+  "categoryEducation": "Освіта",
+  "categoryLegal": "Юридична підтримка",
+  "categoryHousing": "Житло",
+  "categorySocialAid": "Соціальна допомога",
+  "categoryEmployment": "Працевлаштування",
+  "categoryCommunity": "Спільнота",
+  "search": "Пошук"
+}
