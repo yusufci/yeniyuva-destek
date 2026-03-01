@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
@@ -22,9 +21,15 @@ class YeniYuvaApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       locale: locale,
-      supportedLocales: AppLocalizations.supportedLocales,
+      supportedLocales: const [
+        Locale('tr'),
+        Locale('ar'),
+        Locale('en'),
+        Locale('fa'),
+        Locale('uk'),
+        Locale('ru'),
+      ],
       localizationsDelegates: const [
-        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

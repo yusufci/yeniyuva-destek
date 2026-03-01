@@ -25,15 +25,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.user == null) {
-        throw const AuthException(message: 'Giriş başarısız');
+        throw const AppAuthException(message: 'Giriş başarısız');
       }
 
       final profile = await _getProfile(response.user!.id);
       return UserModel.fromSupabaseUser(response.user!, profile);
     } on AuthApiException catch (e) {
-      throw AuthException(message: _mapAuthError(e.message));
+      throw AppAuthException(message: _mapAuthError(e.message));
     } catch (e) {
-      if (e is AuthException) rethrow;
+      if (e is AppAuthException) rethrow;
       throw ServerException(message: e.toString());
     }
   }
@@ -48,15 +48,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.user == null) {
-        throw const AuthException(message: 'Kayıt başarısız');
+        throw const AppAuthException(message: 'Kayıt başarısız');
       }
 
       final profile = await _getProfile(response.user!.id);
       return UserModel.fromSupabaseUser(response.user!, profile);
     } on AuthApiException catch (e) {
-      throw AuthException(message: _mapAuthError(e.message));
+      throw AppAuthException(message: _mapAuthError(e.message));
     } catch (e) {
-      if (e is AuthException) rethrow;
+      if (e is AppAuthException) rethrow;
       throw ServerException(message: e.toString());
     }
   }
@@ -72,13 +72,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // OAuth sonrası kullanıcı bilgisi
       final user = _client.auth.currentUser;
       if (user == null) {
-        throw const AuthException(message: 'Google ile giriş başarısız');
+        throw const AppAuthException(message: 'Google ile giriş başarısız');
       }
 
       final profile = await _getProfile(user.id);
       return UserModel.fromSupabaseUser(user, profile);
     } catch (e) {
-      if (e is AuthException) rethrow;
+      if (e is AppAuthException) rethrow;
       throw ServerException(message: e.toString());
     }
   }

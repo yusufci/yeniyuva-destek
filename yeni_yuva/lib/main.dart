@@ -9,13 +9,31 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // .env dosyasını yükle
-  await dotenv.load(fileName: '.env');
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('⚠️ .env dosyası yüklenemedi: $e');
+  }
 
   // Supabase başlat
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-  );
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+  final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+  if (supabaseUrl.isNotEmpty &&
+      supabaseKey.isNotEmpty &&
+      supabaseUrl.startsWith('https://')) {
+    try {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseKey,
+      );
+      debugPrint('✅ Supabase bağlantısı başarılı');
+    } catch (e) {
+      debugPrint('⚠️ Supabase başlatılamadı: $e');
+    }
+  } else {
+    debugPrint('⚠️ Supabase yapılandırılmamış. .env dosyasını kontrol edin.');
+  }
 
   runApp(
     const ProviderScope(

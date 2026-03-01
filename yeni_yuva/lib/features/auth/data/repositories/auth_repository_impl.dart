@@ -18,7 +18,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithEmail(email, password);
       return Right(user);
-    } on AuthException catch (e) {
+    } on AppAuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
@@ -34,7 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signUpWithEmail(email, password, username);
       return Right(user);
-    } on AuthException catch (e) {
+    } on AppAuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
@@ -46,7 +46,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final user = await remoteDataSource.signInWithGoogle();
       return Right(user);
-    } on AuthException catch (e) {
+    } on AppAuthException catch (e) {
       return Left(AuthFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));

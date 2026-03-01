@@ -45,7 +45,7 @@ dependencies:
   flutter_markdown: ^0.7.6
 
   # Internationalization
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # Functional Programming
   dartz: ^0.10.1
@@ -77,7 +77,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  generate: true
 
   assets:
     - assets/images/

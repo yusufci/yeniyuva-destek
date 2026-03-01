@@ -67,18 +67,18 @@ class ForumRemoteDataSource {
 
   Future<List<ThreadModel>> getThreads({String? category, int limit = 20, int offset = 0}) async {
     try {
-      var query = _client
+      var baseQuery = _client
           .from('forum_threads')
-          .select('*, profiles(username)')
+          .select('*, profiles(username)');
+
+      if (category != null) {
+        baseQuery = baseQuery.eq('category', category);
+      }
+
+      final response = await baseQuery
           .order('is_pinned', ascending: false)
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
-
-      if (category != null) {
-        query = query.eq('category', category);
-      }
-
-      final response = await query;
       return (response as List).map((j) => ThreadModel.fromJson(j as Map<String, dynamic>)).toList();
     } catch (e) {
       throw ServerException(message: 'Forum başlıkları yüklenemedi: $e');

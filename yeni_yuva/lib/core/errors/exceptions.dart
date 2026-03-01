@@ -17,10 +17,10 @@ class NetworkException implements Exception {
   const NetworkException({this.message = 'İnternet bağlantısı bulunamadı.'});
 }
 
-class AuthException implements Exception {
+class AppAuthException implements Exception {
   final String message;
 
-  const AuthException({required this.message});
+  const AppAuthException({required this.message});
 }
 
 class LocationException implements Exception {
