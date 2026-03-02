@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
+import 'l10n/app_localizations.dart';
 import 'router/app_router.dart';
 
 class YeniYuvaApp extends ConsumerWidget {
@@ -21,15 +22,9 @@ class YeniYuvaApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       locale: locale,
-      supportedLocales: const [
-        Locale('tr'),
-        Locale('ar'),
-        Locale('en'),
-        Locale('fa'),
-        Locale('uk'),
-        Locale('ru'),
-      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

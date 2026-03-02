@@ -29,12 +29,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // TODO: authProvider.notifier.signUp metodu eklendiğinde burası açılacak
-    // await ref.read(authProvider.notifier).signUp(
-    //   email: _emailController.text.trim(),
-    //   password: _passwordController.text,
-    //   name: _nameController.text.trim(),
-    // );
+    await ref.read(authProvider.notifier).signUpWithEmail(
+      _emailController.text.trim(),
+      _passwordController.text,
+      _nameController.text.trim(),
+    );
   }
 
   @override

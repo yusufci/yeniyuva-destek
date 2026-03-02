@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/locale_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -114,10 +115,10 @@ class ProfilePage extends ConsumerWidget {
                 ListTile(
                   leading: const Icon(Icons.language),
                   title: const Text('Dil'),
-                  subtitle: const Text('Türkçe'),
+                  subtitle: Text(_getLanguageName(ref.watch(localeProvider).languageCode)),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    _showLanguageDialog(context);
+                    _showLanguageDialog(context, ref);
                   },
                 ),
                 const Divider(height: 1),
@@ -190,6 +191,18 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
+  String _getLanguageName(String code) {
+    switch (code) {
+      case 'tr': return 'Türkçe';
+      case 'ar': return 'العربية';
+      case 'en': return 'English';
+      case 'fa': return 'فارسی';
+      case 'uk': return 'Українська';
+      case 'ru': return 'Русский';
+      default: return code;
+    }
+  }
+
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -214,26 +227,49 @@ class ProfilePage extends ConsumerWidget {
     );
   }
 
-  void _showLanguageDialog(BuildContext context) {
+  void _showLanguageDialog(BuildContext context, WidgetRef ref) {
+    final currentLocale = ref.read(localeProvider);
+    
+    final languages = [
+      {'code': 'tr', 'flag': '🇹🇷', 'name': 'Türkçe'},
+      {'code': 'ar', 'flag': '🇸🇦', 'name': 'العربية'},
+      {'code': 'en', 'flag': '🇬🇧', 'name': 'English'},
+      {'code': 'fa', 'flag': '🇮🇷', 'name': 'فارسی'},
+      {'code': 'uk', 'flag': '🇺🇦', 'name': 'Українська'},
+      {'code': 'ru', 'flag': '🇷🇺', 'name': 'Русский'},
+    ];
+
     showDialog(
       context: context,
       builder: (context) {
         return SimpleDialog(
           title: const Text('Dil Seçin'),
-          children: [
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('🇹🇷 Türkçe'),
-            ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('🇸🇦 العربية'),
-            ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('🇬🇧 English'),
-            ),
-          ],
+          children: languages.map((lang) {
+            final isSelected = currentLocale.languageCode == lang['code'];
+            return SimpleDialogOption(
+              onPressed: () {
+                ref.read(localeProvider.notifier).setLanguageCode(lang['code']!);
+                Navigator.pop(context);
+              },
+              child: Row(
+                children: [
+                  Text(lang['flag']!, style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      lang['name']!,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(Icons.check_circle, color: AppColors.primary, size: 20),
+                ],
+              ),
+            );
+          }).toList(),
         );
       },
     );

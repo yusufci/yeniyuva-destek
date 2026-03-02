@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../theme/app_colors.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -23,7 +24,7 @@ class MainScaffold extends StatelessWidget {
         context.goNamed('map');
         break;
       case 2:
-        // TODO: Mesajlar sayfası eklenecek
+        context.goNamed('info');
         break;
       case 3:
         context.goNamed('profile');
@@ -38,6 +39,7 @@ class MainScaffold extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _calculateSelectedIndex(context),
         onDestinationSelected: (index) => _onItemTapped(index, context),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.15),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -45,14 +47,14 @@ class MainScaffold extends StatelessWidget {
             label: 'Ana Sayfa',
           ),
           NavigationDestination(
-            icon: Icon(Icons.location_on_outlined),
-            selectedIcon: Icon(Icons.location_on),
+            icon: Icon(Icons.map_outlined),
+            selectedIcon: Icon(Icons.map),
             label: 'Harita',
           ),
           NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Mesajlar',
+            icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
+            label: 'Bilgi Merkezi',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
