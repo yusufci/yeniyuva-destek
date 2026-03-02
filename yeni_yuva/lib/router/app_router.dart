@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,15 +15,76 @@ import '../features/emergency/presentation/pages/emergency_page.dart';
 import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../core/widgets/main_scaffold.dart';
 
+// Custom fade transition
+CustomTransitionPage<void> _buildFadeTransition({
+  required Widget child,
+  required GoRouterState state,
+  Duration duration = const Duration(milliseconds: 300),
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: duration,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}
+
+// Custom slide-up transition
+CustomTransitionPage<void> _buildSlideUpTransition({
+  required Widget child,
+  required GoRouterState state,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 350),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.15),
+          end: Offset.zero,
+        ).animate(curved),
+        child: FadeTransition(opacity: curved, child: child),
+      );
+    },
+  );
+}
+
+// Custom scale transition
+CustomTransitionPage<void> _buildScaleTransition({
+  required Widget child,
+  required GoRouterState state,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 350),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutBack);
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.9, end: 1.0).animate(curved),
+        child: FadeTransition(opacity: animation, child: child),
+      );
+    },
+  );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
-      // Onboarding
+      // Onboarding - fade
       GoRoute(
         path: '/onboarding',
         name: 'onboarding',
-        builder: (context, state) => const OnboardingPage(),
+        pageBuilder: (context, state) => _buildFadeTransition(
+          child: const OnboardingPage(),
+          state: state,
+          duration: const Duration(milliseconds: 500),
+        ),
       ),
       // Ana Shell (Bottom Navigation)
       ShellRoute(
@@ -33,19 +95,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/',
             name: 'home',
-            builder: (context, state) => const HomePage(),
+            pageBuilder: (context, state) => _buildFadeTransition(
+              child: const HomePage(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/map',
             name: 'map',
-            builder: (context, state) => const MapPage(),
+            pageBuilder: (context, state) => _buildFadeTransition(
+              child: const MapPage(),
+              state: state,
+            ),
             routes: [
               GoRoute(
                 path: 'service/:id',
                 name: 'service-detail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final id = state.pathParameters['id']!;
-                  return ServiceDetailPage(serviceId: id);
+                  return _buildSlideUpTransition(
+                    child: ServiceDetailPage(serviceId: id),
+                    state: state,
+                  );
                 },
               ),
             ],
@@ -53,14 +124,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/info',
             name: 'info',
-            builder: (context, state) => const ArticlesPage(),
+            pageBuilder: (context, state) => _buildFadeTransition(
+              child: const ArticlesPage(),
+              state: state,
+            ),
             routes: [
               GoRoute(
                 path: 'article/:slug',
                 name: 'article-detail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final slug = state.pathParameters['slug']!;
-                  return ArticleDetailPage(slug: slug);
+                  return _buildSlideUpTransition(
+                    child: ArticleDetailPage(slug: slug),
+                    state: state,
+                  );
                 },
               ),
             ],
@@ -68,32 +145,47 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             name: 'profile',
-            builder: (context, state) => const ProfilePage(),
+            pageBuilder: (context, state) => _buildFadeTransition(
+              child: const ProfilePage(),
+              state: state,
+            ),
           ),
         ],
       ),
-      // Auth sayfaları (Shell dışında)
+      // Auth sayfaları - Scale
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        pageBuilder: (context, state) => _buildScaleTransition(
+          child: const LoginPage(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/register',
         name: 'register',
-        builder: (context, state) => const RegisterPage(),
+        pageBuilder: (context, state) => _buildSlideUpTransition(
+          child: const RegisterPage(),
+          state: state,
+        ),
       ),
-      // Forum
+      // Forum - Slide up
       GoRoute(
         path: '/forum',
         name: 'forum',
-        builder: (context, state) => const ForumPage(),
+        pageBuilder: (context, state) => _buildSlideUpTransition(
+          child: const ForumPage(),
+          state: state,
+        ),
       ),
-      // Acil Durum
+      // Acil Durum - Scale (acil vurgu)
       GoRoute(
         path: '/emergency',
         name: 'emergency',
-        builder: (context, state) => const EmergencyPage(),
+        pageBuilder: (context, state) => _buildScaleTransition(
+          child: const EmergencyPage(),
+          state: state,
+        ),
       ),
     ],
   );

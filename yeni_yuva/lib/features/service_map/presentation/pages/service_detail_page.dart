@@ -11,14 +11,10 @@ class ServiceDetailPage extends StatefulWidget {
   State<ServiceDetailPage> createState() => _ServiceDetailPageState();
 }
 
-class _ServiceDetailPageState extends State<ServiceDetailPage>
-    with SingleTickerProviderStateMixin {
+class _ServiceDetailPageState extends State<ServiceDetailPage> {
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0;
   bool _isFavorite = false;
-
-  late AnimationController _fabController;
-  late Animation<double> _fabScale;
 
   @override
   void initState() {
@@ -26,23 +22,11 @@ class _ServiceDetailPageState extends State<ServiceDetailPage>
     _scrollController.addListener(() {
       setState(() => _scrollOffset = _scrollController.offset);
     });
-
-    _fabController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _fabScale = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _fabController, curve: Curves.easeOutBack),
-    );
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) _fabController.forward();
-    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _fabController.dispose();
     super.dispose();
   }
 

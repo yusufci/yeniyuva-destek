@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
@@ -13,6 +14,15 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (e) {
     debugPrint('⚠️ .env dosyası yüklenemedi: $e');
+  }
+
+  // Mapbox Access Token ayarla
+  final mapboxToken = dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
+  if (mapboxToken.isNotEmpty && mapboxToken != 'your-mapbox-access-token-here') {
+    MapboxOptions.setAccessToken(mapboxToken);
+    debugPrint('✅ Mapbox token ayarlandı');
+  } else {
+    debugPrint('⚠️ Mapbox token yapılandırılmamış. .env dosyasını kontrol edin.');
   }
 
   // Supabase başlat

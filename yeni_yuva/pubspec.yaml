@@ -22,8 +22,8 @@ dependencies:
   # Supabase
   supabase_flutter: ^2.8.4
 
-  # Google Maps
-  google_maps_flutter: ^2.10.0
+  # Mapbox Maps
+  mapbox_maps_flutter: ^2.4.0
 
   # Location
   geolocator: ^13.0.2
