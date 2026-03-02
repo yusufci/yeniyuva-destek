@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/api_constants.dart';
 
 class AdminPanelPage extends ConsumerStatefulWidget {
@@ -84,7 +82,7 @@ class _ServiceAdminTab extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory,
                 decoration: const InputDecoration(labelText: 'Kategori'),
                 items: [
                   DropdownMenuItem(value: ApiConstants.categoryHealth, child: const Text('Sağlık')),
@@ -162,7 +160,7 @@ class _ArticleAdminTab extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory,
                 decoration: const InputDecoration(labelText: 'Kategori'),
                 items: [
                   DropdownMenuItem(value: ApiConstants.articleLifeInTurkey, child: const Text('Türkiye\'de Yaşam')),

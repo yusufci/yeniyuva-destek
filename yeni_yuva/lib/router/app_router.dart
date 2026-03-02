@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,12 +9,22 @@ import '../features/service_map/presentation/pages/service_detail_page.dart';
 import '../features/info_center/presentation/pages/articles_page.dart';
 import '../features/info_center/presentation/pages/article_detail_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
+import '../features/forum/presentation/pages/forum_page.dart';
+import '../features/emergency/presentation/pages/emergency_page.dart';
+import '../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../core/widgets/main_scaffold.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/',
     routes: [
+      // Onboarding
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingPage(),
+      ),
+      // Ana Shell (Bottom Navigation)
       ShellRoute(
         builder: (context, state, child) {
           return MainScaffold(child: child);
@@ -63,6 +72,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      // Auth sayfaları (Shell dışında)
       GoRoute(
         path: '/login',
         name: 'login',
@@ -72,6 +82,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/register',
         name: 'register',
         builder: (context, state) => const RegisterPage(),
+      ),
+      // Forum
+      GoRoute(
+        path: '/forum',
+        name: 'forum',
+        builder: (context, state) => const ForumPage(),
+      ),
+      // Acil Durum
+      GoRoute(
+        path: '/emergency',
+        name: 'emergency',
+        builder: (context, state) => const EmergencyPage(),
       ),
     ],
   );

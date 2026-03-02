@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/datasources/service_remote_datasource.dart';
-import '../../data/models/service_model.dart';
 import '../../domain/entities/service_entity.dart';
 
 // Datasource provider
