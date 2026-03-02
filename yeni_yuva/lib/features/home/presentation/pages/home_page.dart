@@ -67,6 +67,17 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Kategoriler
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                'Hizmet Kategorileri',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             CategoryCardWidget(
               icon: Icons.shopping_bag_outlined,
               label: 'Gıda Yardımı',
@@ -111,12 +122,29 @@ class HomePage extends StatelessWidget {
             // Duyurular & Etkinlikler
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                'Duyurular & Etkinlikler',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Duyurular & Etkinlikler',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // TODO: Tüm duyurular sayfasına git
+                    },
+                    child: Text(
+                      'Tümünü Gör',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 12),

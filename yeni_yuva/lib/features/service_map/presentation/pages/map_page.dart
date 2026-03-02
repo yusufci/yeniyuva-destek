@@ -1,23 +1,39 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
-class MapPage extends StatelessWidget {
+class MapPage extends StatefulWidget {
   const MapPage({super.key});
+
+  @override
+  State<MapPage> createState() => _MapPageState();
+}
+
+class _MapPageState extends State<MapPage> {
+  String? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Hizmet Haritası'),
+        title: Text(
+          'Hizmet Haritası',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: Icon(Icons.filter_list, color: AppColors.textSecondary),
             onPressed: () {
               _showFilterSheet(context);
             },
           ),
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(Icons.search, color: AppColors.textSecondary),
             onPressed: () {
               // TODO: Arama
             },
@@ -26,39 +42,69 @@ class MapPage extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          // TODO: Google Maps widget gelecek
+          // Google Maps Placeholder
           Container(
-            color: Colors.grey.shade200,
-            child: const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.map, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'Harita yükleniyor...',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+            color: Colors.grey.shade100,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.network(
+                    'https://media.wired.com/photos/59269cd37034dc5f91bec0f1/master/pass/GoogleMapTA.jpg',
+                    fit: BoxFit.cover,
+                    opacity: const AlwaysStoppedAnimation(0.3),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Google Maps API key gerekli',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.map_outlined, size: 64, color: AppColors.primary),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Harita Görünümü',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Google Maps API bağlandığında aktif olacak',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           // Kategori chip'leri
           Positioned(
-            top: 8,
+            top: 16,
             left: 0,
             right: 0,
             child: SizedBox(
-              height: 40,
+              height: 44,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 children: [
+                  _buildCategoryChip('Tümü', Icons.apps, AppColors.primary, isSelected: _selectedCategory == null),
                   _buildCategoryChip('Sağlık', Icons.local_hospital, AppColors.categoryHealth),
                   _buildCategoryChip('Eğitim', Icons.school, AppColors.categoryEducation),
                   _buildCategoryChip('Hukuki', Icons.gavel, AppColors.categoryLegal),
@@ -72,29 +118,50 @@ class MapPage extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        elevation: 4,
         onPressed: () {
           // TODO: Konumuma git
         },
-        child: const Icon(Icons.my_location),
+        child: Icon(Icons.my_location, color: AppColors.primary),
       ),
     );
   }
 
-  Widget _buildCategoryChip(String label, IconData icon, Color color) {
+  Widget _buildCategoryChip(String label, IconData icon, Color color, {bool isSelected = false}) {
+    final bool isActive = _selectedCategory == label || isSelected;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: FilterChip(
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: color),
-            const SizedBox(width: 4),
-            Text(label),
+            Icon(icon, size: 18, color: isActive ? Colors.white : color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.white : AppColors.textPrimary,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
           ],
         ),
-        selected: false,
+        selected: isActive,
+        selectedColor: color,
+        backgroundColor: Colors.white,
+        elevation: isActive ? 2 : 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isActive ? color : Colors.grey.shade300,
+          ),
+        ),
         onSelected: (selected) {
-          // TODO: Filtre uygula
+          setState(() {
+            _selectedCategory = label == 'Tümü' ? null : label;
+          });
         },
       ),
     );
