@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Colors
-  static const Color primary = Color(0xFF1565C0);       // Koyu Mavi - Güven
-  static const Color primaryLight = Color(0xFF42A5F5);   // Açık Mavi
-  static const Color primaryDark = Color(0xFF0D47A1);    // Çok Koyu Mavi
+  // Primary Colors - Turuncu/Mercan (Sıcaklık ve Dostluk)
+  static const Color primary = Color(0xFFFF6B6B);       // Mercan/Turuncu
+  static const Color primaryLight = Color(0xFFFF8E8E);   // Açık Mercan
+  static const Color primaryDark = Color(0xFFE85555);    // Koyu Mercan
 
-  // Secondary Colors
-  static const Color secondary = Color(0xFF26A69A);      // Teal - Umut
-  static const Color secondaryLight = Color(0xFF80CBC4);
-  static const Color secondaryDark = Color(0xFF00897B);
+  // Secondary Colors - Mavi (Güven ve Huzur)
+  static const Color secondary = Color(0xFF5B9BD5);      // Mavi
+  static const Color secondaryLight = Color(0xFF8AB8E6);
+  static const Color secondaryDark = Color(0xFF3A7BB8);
 
   // Accent Colors
-  static const Color accent = Color(0xFFFFA726);         // Turuncu - Sıcaklık
+  static const Color accent = Color(0xFFFFB84D);         // Açık Turuncu - Enerji
 
   // Background & Surface
   static const Color background = Color(0xFFF5F7FA);

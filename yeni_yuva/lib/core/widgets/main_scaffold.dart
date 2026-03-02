@@ -23,7 +23,7 @@ class MainScaffold extends StatelessWidget {
         context.goNamed('map');
         break;
       case 2:
-        context.goNamed('info');
+        // TODO: Mesajlar sayfası eklenecek
         break;
       case 3:
         context.goNamed('profile');
@@ -45,14 +45,14 @@ class MainScaffold extends StatelessWidget {
             label: 'Ana Sayfa',
           ),
           NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
+            icon: Icon(Icons.location_on_outlined),
+            selectedIcon: Icon(Icons.location_on),
             label: 'Harita',
           ),
           NavigationDestination(
-            icon: Icon(Icons.article_outlined),
-            selectedIcon: Icon(Icons.article),
-            label: 'Rehber',
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
+            label: 'Mesajlar',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
