@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/error_display_widget.dart';
+import '../../domain/entities/thread_entity.dart';
+import '../providers/forum_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class ForumPage extends ConsumerStatefulWidget {
   const ForumPage({super.key});
@@ -11,63 +17,8 @@ class ForumPage extends ConsumerStatefulWidget {
 
 class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedCategory = 'Tümü';
 
   final _categories = ['Tümü', 'Genel', 'Soru-Cevap', 'Deneyimler', 'Duyurular'];
-
-  // Mock veriler
-  final _mockThreads = [
-    _MockThread(
-      title: 'Oturma izni yenileme süreci hakkında',
-      author: 'Ahmet K.',
-      category: 'Soru-Cevap',
-      replies: 12,
-      votes: 8,
-      timeAgo: '2 saat önce',
-      isPinned: true,
-    ),
-    _MockThread(
-      title: 'İstanbul\'da ücretsiz Türkçe kursları',
-      author: 'Maria S.',
-      category: 'Deneyimler',
-      replies: 25,
-      votes: 34,
-      timeAgo: '5 saat önce',
-    ),
-    _MockThread(
-      title: 'İş izni başvurusu yapacaklara tavsiyeler',
-      author: 'Hassan M.',
-      category: 'Deneyimler',
-      replies: 18,
-      votes: 22,
-      timeAgo: '1 gün önce',
-    ),
-    _MockThread(
-      title: 'Sağlık sigortası nasıl yapılır?',
-      author: 'Elena P.',
-      category: 'Soru-Cevap',
-      replies: 7,
-      votes: 11,
-      timeAgo: '1 gün önce',
-    ),
-    _MockThread(
-      title: 'Yeni gelen arkadaşlara hoş geldiniz mesajı',
-      author: 'Admin',
-      category: 'Duyurular',
-      replies: 45,
-      votes: 67,
-      timeAgo: '3 gün önce',
-      isPinned: true,
-    ),
-    _MockThread(
-      title: 'Kiralık ev ararken dikkat edilmesi gerekenler',
-      author: 'Fatma Y.',
-      category: 'Genel',
-      replies: 31,
-      votes: 28,
-      timeAgo: '4 gün önce',
-    ),
-  ];
 
   @override
   void initState() {
@@ -81,42 +32,25 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
     super.dispose();
   }
 
-  List<_MockThread> get _filteredThreads {
-    if (_selectedCategory == 'Tümü') return _mockThreads;
-    return _mockThreads.where((t) => t.category == _selectedCategory).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final forumState = ref.watch(forumProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'Topluluk Forumu',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
+        title: Text('Topluluk Forumu', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: Icon(Icons.search, color: AppColors.textSecondary),
-            onPressed: () {
-              // TODO: Forum arama
-            },
-          ),
+          IconButton(icon: Icon(Icons.search, color: AppColors.textSecondary), onPressed: () {}),
         ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: 'Konular'),
-            Tab(text: 'Popüler'),
-          ],
+          tabs: const [Tab(text: 'Konular'), Tab(text: 'Popüler')],
         ),
       ),
       body: Column(
@@ -132,22 +66,18 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
                 itemCount: _categories.length,
                 itemBuilder: (context, index) {
                   final cat = _categories[index];
-                  final isSelected = _selectedCategory == cat;
+                  final selectedCat = forumState.selectedCategory;
+                  final isSelected = (cat == 'Tümü' && selectedCat == null) || selectedCat == cat.toLowerCase();
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text(
-                        cat,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
+                      label: Text(cat, style: TextStyle(color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                       selected: isSelected,
                       selectedColor: AppColors.primary,
                       backgroundColor: Colors.grey.shade100,
-                      onSelected: (_) => setState(() => _selectedCategory = cat),
+                      onSelected: (_) {
+                        ref.read(forumProvider.notifier).setCategory(cat == 'Tümü' ? null : cat.toLowerCase());
+                      },
                     ),
                   );
                 },
@@ -156,22 +86,28 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
           ),
           // Konu listesi
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildThreadList(_filteredThreads),
-                _buildThreadList(
-                  List.from(_filteredThreads)..sort((a, b) => b.votes.compareTo(a.votes)),
-                ),
-              ],
-            ),
+            child: forumState.isLoading
+                ? const LoadingWidget(message: 'Konular yükleniyor...')
+                : forumState.error != null
+                    ? ErrorDisplayWidget(
+                        message: 'Konular yüklenemedi',
+                        details: forumState.error,
+                        onRetry: () => ref.read(forumProvider.notifier).refresh(),
+                      )
+                    : forumState.threads.isEmpty
+                        ? const EmptyStateWidget(message: 'Henüz konu bulunmuyor', icon: Icons.forum_outlined, subtitle: 'İlk konuyu siz açın!')
+                        : TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildThreadList(forumState.threads),
+                              _buildThreadList(List.from(forumState.threads)..sort((a, b) => b.voteCount.compareTo(a.voteCount))),
+                            ],
+                          ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _showNewThreadDialog(context);
-        },
+        onPressed: () => _showNewThreadDialog(context),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.edit),
@@ -180,32 +116,28 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
     );
   }
 
-  Widget _buildThreadList(List<_MockThread> threads) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: threads.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final thread = threads[index];
-        return _buildThreadCard(thread);
-      },
+  Widget _buildThreadList(List<ThreadEntity> threads) {
+    return RefreshIndicator(
+      onRefresh: () => ref.read(forumProvider.notifier).refresh(),
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: threads.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 8),
+        itemBuilder: (context, index) => _buildThreadCard(threads[index]),
+      ),
     );
   }
 
-  Widget _buildThreadCard(_MockThread thread) {
+  Widget _buildThreadCard(ThreadEntity thread) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: thread.isPinned
-              ? AppColors.accent.withValues(alpha: 0.4)
-              : Colors.grey.withValues(alpha: 0.15),
-        ),
+        side: BorderSide(color: thread.isPinned ? AppColors.accent.withValues(alpha: 0.4) : Colors.grey.withValues(alpha: 0.15)),
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Konu detayına git
+          // TODO: Konu detay sayfası
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -218,49 +150,21 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
                   if (thread.isPinned) ...[
                     Icon(Icons.push_pin, size: 14, color: AppColors.accent),
                     const SizedBox(width: 4),
-                    Text(
-                      'Sabitlenmiş',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text('Sabitlenmiş', style: TextStyle(fontSize: 11, color: AppColors.accent, fontWeight: FontWeight.w600)),
                     const SizedBox(width: 8),
                   ],
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
+                  if (thread.category != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.secondary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
+                      child: Text(thread.category!, style: TextStyle(fontSize: 11, color: AppColors.secondary, fontWeight: FontWeight.w500)),
                     ),
-                    child: Text(
-                      thread.category,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.secondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
                   const Spacer(),
-                  Text(
-                    thread.timeAgo,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textHint,
-                    ),
-                  ),
+                  Text(timeago.format(thread.createdAt, locale: 'tr'), style: TextStyle(fontSize: 11, color: AppColors.textHint)),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                thread.title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
+              Text(thread.title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -268,26 +172,24 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
                     radius: 12,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                     child: Text(
-                      thread.author[0],
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      (thread.authorName ?? 'U')[0].toUpperCase(),
+                      style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    thread.author,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
+                  Text(thread.authorName ?? 'Kullanıcı', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                   const Spacer(),
-                  _buildStatChip(Icons.arrow_upward, thread.votes.toString(), AppColors.success),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.arrow_upward, size: 14, color: AppColors.success),
+                    const SizedBox(width: 4),
+                    Text('${thread.voteCount}', style: TextStyle(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.w600)),
+                  ]),
                   const SizedBox(width: 12),
-                  _buildStatChip(Icons.chat_bubble_outline, thread.replies.toString(), AppColors.secondary),
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.chat_bubble_outline, size: 14, color: AppColors.secondary),
+                    const SizedBox(width: 4),
+                    Text('${thread.replyCount}', style: TextStyle(fontSize: 12, color: AppColors.secondary, fontWeight: FontWeight.w600)),
+                  ]),
                 ],
               ),
             ],
@@ -297,96 +199,55 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
     );
   }
 
-  Widget _buildStatChip(IconData icon, String count, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Text(
-          count,
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
   void _showNewThreadDialog(BuildContext context) {
+    final isAuth = ref.read(authProvider).status == AuthStatus.authenticated;
+    if (!isAuth) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: const Text('Konu açmak için giriş yapmalısınız'), backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+      );
+      return;
+    }
+
+    final titleController = TextEditingController();
+    final bodyController = TextEditingController();
+    String? selectedCategory;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-          ),
+          padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 20),
-              Text(
-                'Yeni Konu Oluştur',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text('Yeni Konu Oluştur', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Konu Başlığı',
-                  hintText: 'Sorunuzu veya konunuzu yazın...',
-                ),
-              ),
+              TextFormField(controller: titleController, decoration: const InputDecoration(labelText: 'Konu Başlığı', hintText: 'Sorunuzu veya konunuzu yazın...')),
               const SizedBox(height: 12),
-              TextFormField(
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'İçerik',
-                  hintText: 'Detayları buraya yazın...',
-                  alignLabelWithHint: true,
-                ),
-              ),
+              TextFormField(controller: bodyController, maxLines: 4, decoration: const InputDecoration(labelText: 'İçerik', hintText: 'Detayları buraya yazın...', alignLabelWithHint: true)),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Kategori',
-                ),
-                items: _categories
-                    .where((c) => c != 'Tümü')
-                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                    .toList(),
-                onChanged: (v) {},
+                decoration: const InputDecoration(labelText: 'Kategori'),
+                items: _categories.where((c) => c != 'Tümü').map((c) => DropdownMenuItem(value: c.toLowerCase(), child: Text(c))).toList(),
+                onChanged: (v) => selectedCategory = v,
               ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Konu oluşturma özelliği yakında aktif olacak!')),
+                  onPressed: () async {
+                    if (titleController.text.isEmpty || bodyController.text.isEmpty) return;
+                    await ref.read(forumProvider.notifier).createThread(
+                      title: titleController.text,
+                      body: bodyController.text,
+                      category: selectedCategory,
                     );
+                    if (context.mounted) Navigator.pop(context);
                   },
                   child: const Text('Paylaş'),
                 ),
@@ -397,24 +258,4 @@ class _ForumPageState extends ConsumerState<ForumPage> with SingleTickerProvider
       },
     );
   }
-}
-
-class _MockThread {
-  final String title;
-  final String author;
-  final String category;
-  final int replies;
-  final int votes;
-  final String timeAgo;
-  final bool isPinned;
-
-  _MockThread({
-    required this.title,
-    required this.author,
-    required this.category,
-    required this.replies,
-    required this.votes,
-    required this.timeAgo,
-    this.isPinned = false,
-  });
 }

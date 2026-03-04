@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/animated_list_item.dart';
+import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/error_display_widget.dart';
+import '../providers/service_map_provider.dart';
 
-class ServiceDetailPage extends StatefulWidget {
+class ServiceDetailPage extends ConsumerStatefulWidget {
   final String serviceId;
 
   const ServiceDetailPage({super.key, required this.serviceId});
 
   @override
-  State<ServiceDetailPage> createState() => _ServiceDetailPageState();
+  ConsumerState<ServiceDetailPage> createState() => _ServiceDetailPageState();
 }
 
-class _ServiceDetailPageState extends State<ServiceDetailPage> {
+class _ServiceDetailPageState extends ConsumerState<ServiceDetailPage> {
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0;
   bool _isFavorite = false;
@@ -32,79 +36,71 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final imageHeight = 260.0;
+    final serviceAsync = ref.watch(serviceDetailProvider(widget.serviceId));
+    const imageHeight = 260.0;
     final parallaxOffset = _scrollOffset * 0.4;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          CustomScrollView(
+      body: serviceAsync.when(
+        loading: () => const Scaffold(body: LoadingWidget(message: 'Hizmet bilgileri yükleniyor...')),
+        error: (error, _) => Scaffold(
+          appBar: AppBar(),
+          body: ErrorDisplayWidget(
+            message: 'Hizmet bilgileri yüklenemedi',
+            details: error.toString(),
+            onRetry: () => ref.invalidate(serviceDetailProvider(widget.serviceId)),
+          ),
+        ),
+        data: (service) {
+          final name = service.getLocalizedName('tr');
+          final desc = service.getLocalizedDescription('tr');
+          final address = service.getLocalizedAddress('tr');
+          final categoryColor = AppColors.getCategoryColor(service.category);
+
+          return CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // Paralaks AppBar
               SliverAppBar(
                 expandedHeight: imageHeight,
                 floating: false,
                 pinned: true,
                 backgroundColor: Colors.white,
-                foregroundColor: _scrollOffset > imageHeight - 100
-                    ? AppColors.textPrimary
-                    : Colors.white,
+                foregroundColor: _scrollOffset > imageHeight - 100 ? AppColors.textPrimary : Colors.white,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // Paralaks görsel
                       Transform.translate(
                         offset: Offset(0, parallaxOffset),
-                        child: Image.network(
-                          'https://media.wired.com/photos/59269cd37034dc5f91bec0f1/master/pass/GoogleMapTA.jpg',
-                          fit: BoxFit.cover,
+                        child: Container(
+                          color: categoryColor.withValues(alpha: 0.2),
+                          child: Center(
+                            child: Icon(_getCategoryIcon(service.category), size: 80, color: categoryColor.withValues(alpha: 0.5)),
+                          ),
                         ),
                       ),
-                      // Gradient overlay
                       Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.2),
-                              Colors.black.withValues(alpha: 0.5),
-                            ],
+                            colors: [Colors.black.withValues(alpha: 0.2), Colors.black.withValues(alpha: 0.5)],
                           ),
                         ),
                       ),
-                      // Alt bilgi
                       Positioned(
-                        bottom: 20,
-                        left: 20,
-                        right: 20,
+                        bottom: 20, left: 20, right: 20,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.categoryHealth,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text(
-                                'Sağlık',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
-                              ),
+                              decoration: BoxDecoration(color: categoryColor, borderRadius: BorderRadius.circular(6)),
+                              child: Text(_getCategoryLabel(service.category), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Örnek Göçmen Sağlığı Merkezi',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 22,
-                                shadows: [Shadow(color: Colors.black38, blurRadius: 8)],
-                              ),
-                            ),
+                            Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22, shadows: [Shadow(color: Colors.black38, blurRadius: 8)])),
                           ],
                         ),
                       ),
@@ -112,7 +108,6 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                   ),
                 ),
                 actions: [
-                  // Animated favorite button
                   IconButton(
                     icon: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -126,80 +121,56 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                     onPressed: () => setState(() => _isFavorite = !_isFavorite),
                   ),
                   IconButton(
-                    icon: Icon(
-                      Icons.share_outlined,
-                      color: _scrollOffset > imageHeight - 100 ? AppColors.textSecondary : Colors.white,
-                    ),
+                    icon: Icon(Icons.share_outlined, color: _scrollOffset > imageHeight - 100 ? AppColors.textSecondary : Colors.white),
                     onPressed: () {},
                   ),
                 ],
               ),
-              // İçerik
               SliverToBoxAdapter(
                 child: Transform.translate(
                   offset: const Offset(0, -24),
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
+                    decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
                     padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Durum ve mesafe
                         AnimatedListItem(
                           index: 0,
                           child: Row(
                             children: [
                               _buildStatusChip('Açık', AppColors.success, Icons.circle),
                               const SizedBox(width: 12),
-                              _buildStatusChip('2.3 km', AppColors.secondary, Icons.location_on),
-                              const Spacer(),
-                              _buildRatingChip(4.5),
+                              if (service.distanceKm != null)
+                                _buildStatusChip('${service.distanceKm!.toStringAsFixed(1)} km', AppColors.secondary, Icons.location_on),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        // Açıklama
-                        AnimatedListItem(
-                          index: 1,
-                          child: Text(
-                            'Bu sağlık merkezi, göçmenlere ücretsiz temel sağlık hizmetleri ve danışmanlık sunmaktadır.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                              height: 1.6,
-                            ),
+                        if (desc.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          AnimatedListItem(
+                            index: 1,
+                            child: Text(desc, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary, height: 1.6)),
                           ),
-                        ),
+                        ],
                         const SizedBox(height: 24),
-                        AnimatedListItem(
-                          index: 2,
-                          child: const Divider(),
-                        ),
+                        AnimatedListItem(index: 2, child: const Divider()),
                         const SizedBox(height: 24),
-                        // Bilgi satırları
-                        AnimatedListItem(
-                          index: 3,
-                          child: _buildInfoRow(Icons.location_on_outlined, 'Adres', 'Fatih Mahallesi, Göçmen Caddesi No:123, İstanbul'),
-                        ),
-                        const SizedBox(height: 20),
-                        AnimatedListItem(
-                          index: 4,
-                          child: _buildInfoRow(Icons.phone_outlined, 'İletişim', '+90 212 123 45 67\ninfo@ornekmerkez.org'),
-                        ),
-                        const SizedBox(height: 20),
-                        AnimatedListItem(
-                          index: 5,
-                          child: _buildInfoRow(Icons.access_time_outlined, 'Çalışma Saatleri', 'Pazartesi - Cuma: 09:00 - 17:00\nHafta sonu kapalı'),
-                        ),
-                        const SizedBox(height: 20),
-                        AnimatedListItem(
-                          index: 6,
-                          child: _buildInfoRow(Icons.language_outlined, 'Desteklenen Diller', 'Türkçe, Arapça, İngilizce, Farsça'),
-                        ),
+                        if (address.isNotEmpty)
+                          AnimatedListItem(index: 3, child: _buildInfoRow(Icons.location_on_outlined, 'Adres', address)),
+                        if (service.phone != null) ...[
+                          const SizedBox(height: 20),
+                          AnimatedListItem(index: 4, child: _buildInfoRow(Icons.phone_outlined, 'İletişim', service.phone!)),
+                        ],
+                        if (service.spokenLanguages.isNotEmpty) ...[
+                          const SizedBox(height: 20),
+                          AnimatedListItem(index: 5, child: _buildInfoRow(Icons.language_outlined, 'Desteklenen Diller', service.spokenLanguages.join(', '))),
+                        ],
+                        if (service.website != null) ...[
+                          const SizedBox(height: 20),
+                          AnimatedListItem(index: 6, child: _buildInfoRow(Icons.web_outlined, 'Web Sitesi', service.website!)),
+                        ],
                         const SizedBox(height: 32),
-                        // Butonlar
                         AnimatedListItem(
                           index: 7,
                           child: Row(
@@ -209,11 +180,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                                   onPressed: () {},
                                   icon: const Icon(Icons.phone),
                                   label: const Text('Ara'),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    side: BorderSide(color: AppColors.primary),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  ),
+                                  style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), side: BorderSide(color: AppColors.primary), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -223,12 +190,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                                   onPressed: () {},
                                   icon: const Icon(Icons.directions),
                                   label: const Text('Yol Tarifi Al'),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                    elevation: 4,
-                                    shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                                  ),
+                                  style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 4, shadowColor: AppColors.primary.withValues(alpha: 0.3)),
                                 ),
                               ),
                             ],
@@ -241,8 +203,8 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 ),
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -250,43 +212,12 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
   Widget _buildStatusChip(String label, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingChip(double rating) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.star, size: 16, color: AppColors.accent),
-          const SizedBox(width: 4),
-          Text(
-            rating.toString(),
-            style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold, fontSize: 13),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withValues(alpha: 0.3))),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 10, color: color),
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)),
+      ]),
     );
   }
 
@@ -296,43 +227,44 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primary.withValues(alpha: 0.1),
-                AppColors.primary.withValues(alpha: 0.05),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(10),
-          ),
+          decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.1), AppColors.primary.withValues(alpha: 0.05)]), borderRadius: BorderRadius.circular(10)),
           child: Icon(icon, size: 20, color: AppColors.primary),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(value, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, height: 1.4)),
+          ]),
         ),
       ],
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'health': return Icons.local_hospital;
+      case 'education': return Icons.school;
+      case 'legal': return Icons.gavel;
+      case 'housing': return Icons.home;
+      case 'social_aid': return Icons.volunteer_activism;
+      case 'employment': return Icons.work;
+      case 'community': return Icons.people;
+      default: return Icons.place;
+    }
+  }
+
+  String _getCategoryLabel(String category) {
+    switch (category) {
+      case 'health': return 'Sağlık';
+      case 'education': return 'Eğitim';
+      case 'legal': return 'Hukuki';
+      case 'housing': return 'Barınma';
+      case 'social_aid': return 'Sosyal Yardım';
+      case 'employment': return 'İş';
+      case 'community': return 'Topluluk';
+      default: return category;
+    }
   }
 }

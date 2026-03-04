@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/welcome_header_widget.dart';
 import '../../../../core/widgets/quick_tools_widget.dart';
 import '../../../../core/widgets/announcement_card_widget.dart';
 import '../../../../core/utils/animated_list_item.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMixin {
   late AnimationController _searchBarController;
   late Animation<double> _searchBarFade;
   late Animation<double> _searchBarScale;
@@ -70,8 +72,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Animasyonlu Hoşgeldin Header
-            const WelcomeHeaderWidget(userName: 'Anna'),
+            // Animasyonlu Hoşgeldin Header - gerçek kullanıcı adı
+            WelcomeHeaderWidget(
+              userName: ref.watch(currentUserProvider)?.username ?? 'Misafir',
+            ),
             const SizedBox(height: 16),
 
             // Acil Durum Butonu - Staggered
