@@ -98,6 +98,12 @@ yeniyuva-destek/
 
 ---
 
+## Proje Durumu
+
+> **Not:** Bu çalışma zamanında bir fikir ve prototip olarak geliştirilmiş olup şu anda aktif olarak sürdürülmemektedir. İleri seviye ya da tamamlanmış bir kurumsal yazılım iddiası taşımamaktadır; zamanında yapılıp arşive kaldırılmış, ilgilenenler için referans niteliğinde bir açık kaynak tabandır.
+
+---
+
 ## Lisans
 
-Bu proje MIT Lisansı altında sunulmaktadır. Ayruntılar için `LICENSE` dosyasına bakabilirsiniz.
+Bu proje MIT Lisansı altında sunulmaktadır. Ayrıntılar için `LICENSE` dosyasına bakabilirsiniz.
