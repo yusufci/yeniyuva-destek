@@ -66,7 +66,7 @@ yeniyuva-destek/
 
 1. Depoyu klonlayın ve bağımlılıkları yükleyin:
    ```bash
-   git clone https://github.com/caymazyusuf72/yeniyuva-destek.git
+   git clone https://github.com/yusufci/yeniyuva-destek.git
    cd yeniyuva-destek
    flutter pub get
    ```
